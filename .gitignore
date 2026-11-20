@@ -31,3 +31,6 @@ next-env.d.ts
 
 # Recordings
 recordings/
+recordings_smooth/
+scratch/
+~$*.pptx
