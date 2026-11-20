@@ -3,8 +3,15 @@
 @tailwind utilities;
 
 :root {
-  --background: #F6F8FA;
+  --background: #EFF8F7;
   --foreground: #14283F;
+  --surface-card: #FFFFFF;
+  --flip-teal: #2BA8A2;
+  --flip-teal-dark: #1E8C86;
+  --flip-gold: #FFD23F;
+  --flip-coral: #EF6C4A;
+  --flip-cream: #FFF8E7;
+  --flip-sky: #5DADE2;
 }
 
 body {
@@ -14,9 +21,10 @@ body {
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
 }
 
-/* RTL support */
+/* RTL support for Arabic */
 [dir="rtl"] {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   text-align: right;
@@ -24,11 +32,114 @@ body {
 
 /* Accessible focus ring */
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
-  outline: 2px solid #087E83;
+  outline: 2px solid #2BA8A2;
   outline-offset: 2px;
 }
 
-/* Print styling for summary export */
+/* Flip7 Pill Button Styles with Tactile Bounce */
+.btn-pill {
+  border-radius: 9999px;
+  min-height: 44px;
+  padding: 10px 24px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-pill:active {
+  transform: scale(0.95);
+}
+
+.btn-gold-cta {
+  background: linear-gradient(135deg, #FFD23F 0%, #FFE47A 50%, #FFD23F 100%);
+  color: #14283F;
+  box-shadow: 0 4px 20px rgba(255, 210, 63, 0.40);
+  border: 1px solid #E6B800;
+}
+
+.btn-gold-cta:hover {
+  background: linear-gradient(135deg, #FFE47A 0%, #FFD23F 100%);
+  box-shadow: 0 6px 24px rgba(255, 210, 63, 0.50);
+}
+
+.btn-teal-primary {
+  background-color: #2BA8A2;
+  color: #FFFFFF;
+  box-shadow: 0 4px 20px rgba(43, 168, 162, 0.30);
+}
+
+.btn-teal-primary:hover {
+  background-color: #1E8C86;
+  box-shadow: 0 6px 24px rgba(43, 168, 162, 0.40);
+}
+
+.btn-coral-urgent {
+  background-color: #EF6C4A;
+  color: #FFFFFF;
+  box-shadow: 0 4px 20px rgba(239, 108, 74, 0.35);
+}
+
+.btn-coral-urgent:hover {
+  background-color: #D45233;
+}
+
+/* Flip7 Card Left Accent System */
+.flip7-card {
+  background: #FFFFFF;
+  border-radius: 24px;
+  box-shadow: 0 4px 20px rgba(43, 168, 162, 0.10);
+  border: 1px solid #E8F6F5;
+  border-left-width: 6px;
+  border-left-color: #2BA8A2;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.flip7-card:hover {
+  box-shadow: 0 8px 30px rgba(43, 168, 162, 0.15);
+}
+
+.flip7-card-gold {
+  border-left-color: #FFD23F;
+}
+
+.flip7-card-coral {
+  border-left-color: #EF6C4A;
+  box-shadow: 0 4px 20px rgba(239, 108, 74, 0.15);
+}
+
+.flip7-card-sky {
+  border-left-color: #5DADE2;
+}
+
+/* Flip7 Ribbon Banner Effect */
+.ribbon-banner {
+  background: #FFF8E7;
+  border: 2px solid #14283F;
+  border-radius: 12px;
+  padding: 8px 18px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(20, 40, 63, 0.08);
+}
+
+/* Cream Input Surface */
+.cream-surface {
+  background-color: #FFF8E7;
+  border: 1px solid #F4ECD4;
+}
+
+/* Dashed Section Dividers */
+.dashed-divider {
+  border-bottom: 2px dashed #C7F1F3;
+}
+
+/* Print styling */
 @media print {
   header, footer, nav, .no-print {
     display: none !important;

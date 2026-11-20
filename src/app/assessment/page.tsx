@@ -12,9 +12,9 @@ import {
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
-  HelpCircle,
-  ShieldCheck,
+  Sparkles,
   RefreshCw,
+  HeartPulse,
 } from "lucide-react";
 
 const INITIAL_ANSWERS: IntakeAnswers = {
@@ -48,7 +48,6 @@ function AssessmentContent() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Load existing or initialize demo session
   useEffect(() => {
     async function init() {
       try {
@@ -61,7 +60,6 @@ function AssessmentContent() {
             setAnswers(data.assessment.answers);
           }
         } else {
-          // If no active session, start default D01
           const startRes = await fetch("/api/demo/start", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -128,7 +126,6 @@ function AssessmentContent() {
     setIsSubmitting(true);
     setErrorMsg(null);
     try {
-      // Ensure latest answers synced
       await syncAssessment();
 
       const res = await fetch("/api/assessment/evaluate", {
@@ -155,12 +152,12 @@ function AssessmentContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-offwhite">
+      <div className="min-h-screen flex flex-col bg-surface-base">
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center space-y-3">
-            <RefreshCw className="w-8 h-8 text-teal animate-spin mx-auto" />
-            <p className="text-sm font-medium text-navy">Loading SignalSense Intake...</p>
+            <RefreshCw className="w-8 h-8 text-[#2BA8A2] animate-spin mx-auto" />
+            <p className="text-sm font-bold text-[#14283F]">Loading SignalSense Intake...</p>
           </div>
         </div>
         <Footer />
@@ -168,35 +165,86 @@ function AssessmentContent() {
     );
   }
 
-  // Four-Step Intake Flow
+  // Answer button renderer with Flip7 pill styling
+  const renderPillChoices = (
+    field: keyof IntakeAnswers,
+    isUrgentQuestion = false
+  ) => {
+    const currentVal = answers[field];
+    const options: { val: Answer; label: string }[] = [
+      { val: "no", label: t.common.no },
+      { val: "yes", label: t.common.yes },
+      { val: "unknown", label: t.common.unknown },
+      { val: "prefer_not", label: t.common.preferNot },
+    ];
+
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
+        {options.map((opt) => {
+          const isSelected = currentVal === opt.val;
+          let activeClass = "bg-white text-slate-text border-2 border-[#E8F6F5] hover:border-[#2BA8A2]/40";
+
+          if (isSelected) {
+            if (opt.val === "yes" && isUrgentQuestion) {
+              activeClass = "bg-[#EF6C4A] text-white border-2 border-[#EF6C4A] shadow-coral-glow";
+            } else if (opt.val === "yes") {
+              activeClass = "bg-[#2BA8A2] text-white border-2 border-[#2BA8A2] shadow-teal-glow";
+            } else if (opt.val === "no") {
+              activeClass = "bg-[#1E8C86] text-white border-2 border-[#1E8C86] shadow-teal-glow";
+            } else {
+              activeClass = "bg-[#FFD23F] text-[#14283F] border-2 border-[#E6B800] shadow-accent-glow font-extrabold";
+            }
+          }
+
+          return (
+            <button
+              key={opt.val}
+              type="button"
+              onClick={() => handleAnswerChange(field, opt.val)}
+              className={`btn-pill text-xs py-2 px-3 border transition-all ${activeClass}`}
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-offwhite">
+    <div className="min-h-screen flex flex-col bg-surface-base">
       <Navbar />
 
       <main className="flex-1 py-10 max-w-3xl mx-auto px-4 sm:px-6 space-y-6">
-        {/* Step Progress Header */}
-        <div className="bg-white rounded-xl p-4 border border-navy-100 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-xs font-bold text-teal uppercase tracking-wider">
-              {t.common.step} {step} {t.common.of} 4
+        {/* Flip7 Staged Progress Header */}
+        <div className="bg-white rounded-3xl p-5 border border-[#E8F6F5] shadow-card flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="w-8 h-8 rounded-full bg-[#FFD23F] text-[#14283F] font-extrabold text-sm flex items-center justify-center shadow-accent-glow">
+              {step}
             </span>
-            <h2 className="text-lg font-bold text-navy">
-              {step === 1 && t.safetyGate.title}
-              {step === 2 && t.assessment.card1Title}
-              {step === 3 && t.assessment.card2Title}
-              {step === 4 && t.assessment.card4Title}
-            </h2>
+            <div>
+              <span className="text-[11px] font-extrabold text-[#1E8C86] uppercase tracking-wider">
+                {t.common.step} {step} {t.common.of} 4
+              </span>
+              <h2 className="text-base sm:text-lg font-extrabold text-[#14283F]">
+                {step === 1 && t.safetyGate.title}
+                {step === 2 && t.assessment.card1Title}
+                {step === 3 && t.assessment.card2Title}
+                {step === 4 && t.assessment.card4Title}
+              </h2>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5">
+
+          <div className="flex items-center gap-2">
             {[1, 2, 3, 4].map((i) => (
               <span
                 key={i}
-                className={`w-3 h-3 rounded-full transition ${
+                className={`w-3 h-3 rounded-full transition-all ${
                   step === i
-                    ? "bg-teal ring-2 ring-teal-200"
+                    ? "bg-[#FFD23F] ring-4 ring-[#FFE47A]"
                     : step > i
-                    ? "bg-navy-700"
-                    : "bg-navy-100"
+                    ? "bg-[#2BA8A2]"
+                    : "bg-[#E8F6F5]"
                 }`}
               />
             ))}
@@ -205,96 +253,60 @@ function AssessmentContent() {
 
         {/* STEP 1: CRITICAL SAFETY GATE */}
         {step === 1 && (
-          <div className="bg-white rounded-2xl p-6 border border-navy-100 shadow-sm space-y-6">
-            <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl text-xs text-amber-900 flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div className="flip7-card flip7-card-coral p-6 sm:p-8 space-y-6">
+            <div className="bg-[#FFF3F0] border-2 border-[#FF8A6A] p-4 rounded-2xl text-xs text-[#14283F] flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-[#EF6C4A] flex-shrink-0 mt-0.5" />
               <div>
-                <strong>Emergency Priority Notice:</strong> Acute testicular symptoms require immediate medical assessment. Any positive flag bypasses routine screening and directs you straight to emergency care.
+                <strong className="text-[#EF6C4A]">Acute Symptom Priority Gate:</strong> Sudden severe testicular pain or pain with nausea requires immediate hospital emergency room evaluation. Any affirmative response halts routine intake immediately.
               </div>
             </div>
 
-            {/* Question 1: Sudden Severe Pain */}
             <div className="space-y-2">
-              <label className="block text-sm font-bold text-navy">
+              <label className="block text-sm font-extrabold text-[#14283F]">
                 {t.safetyGate.suddenPainLabel}
               </label>
               <p className="text-xs text-slate-text">
                 {t.safetyGate.suddenPainHelp}
               </p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-                {(["no", "yes", "unknown", "prefer_not"] as Answer[]).map((val) => (
-                  <button
-                    key={val}
-                    type="button"
-                    onClick={() => handleAnswerChange("suddenSevereTesticularPain", val)}
-                    className={`py-2 px-3 text-xs font-semibold rounded-lg border capitalize transition ${
-                      answers.suddenSevereTesticularPain === val
-                        ? val === "yes"
-                          ? "bg-red-600 text-white border-red-600 shadow-xs"
-                          : "bg-teal text-white border-teal shadow-xs"
-                        : "bg-navy-50 text-slate-text border-navy-100 hover:bg-navy-100"
-                    }`}
-                  >
-                    {val === "prefer_not" ? t.common.preferNot : val === "unknown" ? t.common.unknown : val === "yes" ? t.common.yes : t.common.no}
-                  </button>
-                ))}
-              </div>
+              {renderPillChoices("suddenSevereTesticularPain", true)}
             </div>
 
-            {/* Question 2: Pain with Nausea / Vomiting */}
-            <div className="space-y-2 pt-4 border-t border-navy-50">
-              <label className="block text-sm font-bold text-navy">
+            <div className="space-y-2 pt-4 border-t border-[#E8F6F5]">
+              <label className="block text-sm font-extrabold text-[#14283F]">
                 {t.safetyGate.painNauseaLabel}
               </label>
               <p className="text-xs text-slate-text">
                 {t.safetyGate.painNauseaHelp}
               </p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-                {(["no", "yes", "unknown", "prefer_not"] as Answer[]).map((val) => (
-                  <button
-                    key={val}
-                    type="button"
-                    onClick={() => handleAnswerChange("painWithNauseaOrVomiting", val)}
-                    className={`py-2 px-3 text-xs font-semibold rounded-lg border capitalize transition ${
-                      answers.painWithNauseaOrVomiting === val
-                        ? val === "yes"
-                          ? "bg-red-600 text-white border-red-600 shadow-xs"
-                          : "bg-teal text-white border-teal shadow-xs"
-                        : "bg-navy-50 text-slate-text border-navy-100 hover:bg-navy-100"
-                    }`}
-                  >
-                    {val === "prefer_not" ? t.common.preferNot : val === "unknown" ? t.common.unknown : val === "yes" ? t.common.yes : t.common.no}
-                  </button>
-                ))}
-              </div>
+              {renderPillChoices("painWithNauseaOrVomiting", true)}
             </div>
           </div>
         )}
 
         {/* STEP 2: CONTEXT & INTENT */}
         {step === 2 && (
-          <div className="bg-white rounded-2xl p-6 border border-navy-100 shadow-sm space-y-6">
+          <div className="flip7-card p-6 sm:p-8 space-y-6">
             <div className="space-y-2">
-              <label className="block text-sm font-bold text-navy">
+              <label className="block text-sm font-extrabold text-[#14283F]">
                 {t.assessment.ageBandLabel}
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
                 {[
                   { id: "18_24", label: "18–24 years" },
                   { id: "25_34", label: "25–34 years" },
                   { id: "35_44", label: "35–44 years" },
                   { id: "45_54", label: "45–54 years" },
                   { id: "55_plus", label: "55+ years" },
-                  { id: "undisclosed", label: "Prefer not to disclose" },
+                  { id: "undisclosed", label: "Prefer not to say" },
                 ].map((item) => (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => handleAnswerChange("ageBand", item.id)}
-                    className={`p-2.5 text-xs font-semibold rounded-lg border transition ${
+                    className={`btn-pill text-xs py-2 px-3 border transition-all ${
                       answers.ageBand === item.id
-                        ? "bg-teal text-white border-teal shadow-xs"
-                        : "bg-navy-50 text-slate-text border-navy-100 hover:bg-navy-100"
+                        ? "bg-[#2BA8A2] text-white border-[#2BA8A2] shadow-teal-glow"
+                        : "bg-white text-slate-text border-[#E8F6F5] hover:border-[#2BA8A2]"
                     }`}
                   >
                     {item.label}
@@ -303,11 +315,11 @@ function AssessmentContent() {
               </div>
             </div>
 
-            <div className="space-y-2 pt-4 border-t border-navy-50">
-              <label className="block text-sm font-bold text-navy">
+            <div className="space-y-2 pt-4 border-t border-[#E8F6F5]">
+              <label className="block text-sm font-extrabold text-[#14283F]">
                 {t.assessment.goalLabel}
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                 {[
                   { id: "general_awareness", label: "General Reproductive Awareness" },
                   { id: "planning_if_desired", label: "Future Family Planning (Context)" },
@@ -318,10 +330,10 @@ function AssessmentContent() {
                     key={item.id}
                     type="button"
                     onClick={() => handleAnswerChange("primaryGoal", item.id)}
-                    className={`p-2.5 text-xs font-semibold rounded-lg border text-left transition ${
+                    className={`btn-pill text-xs py-2.5 px-4 text-left justify-start border transition-all ${
                       answers.primaryGoal === item.id
-                        ? "bg-teal text-white border-teal shadow-xs"
-                        : "bg-navy-50 text-slate-text border-navy-100 hover:bg-navy-100"
+                        ? "bg-[#2BA8A2] text-white border-[#2BA8A2] shadow-teal-glow"
+                        : "bg-white text-slate-text border-[#E8F6F5] hover:border-[#2BA8A2]"
                     }`}
                   >
                     {item.label}
@@ -330,132 +342,53 @@ function AssessmentContent() {
               </div>
             </div>
 
-            <div className="space-y-2 pt-4 border-t border-navy-50">
-              <label className="block text-sm font-bold text-navy">
+            <div className="space-y-2 pt-4 border-t border-[#E8F6F5]">
+              <label className="block text-sm font-extrabold text-[#14283F]">
                 {t.assessment.difficultyConceivingLabel}
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {(["no", "yes", "unknown", "prefer_not"] as Answer[]).map((val) => (
-                  <button
-                    key={val}
-                    type="button"
-                    onClick={() => handleAnswerChange("difficultyConceiving", val)}
-                    className={`py-2 px-3 text-xs font-semibold rounded-lg border capitalize transition ${
-                      answers.difficultyConceiving === val
-                        ? "bg-teal text-white border-teal"
-                        : "bg-navy-50 text-slate-text border-navy-100 hover:bg-navy-100"
-                    }`}
-                  >
-                    {val === "prefer_not" ? t.common.preferNot : val === "unknown" ? t.common.unknown : val === "yes" ? t.common.yes : t.common.no}
-                  </button>
-                ))}
-              </div>
+              {renderPillChoices("difficultyConceiving")}
             </div>
           </div>
         )}
 
-        {/* STEP 3: UROLOGICAL, ANATOMICAL & METABOLIC HISTORY */}
+        {/* STEP 3: UROLOGICAL & LIFESTYLE HISTORY */}
         {step === 3 && (
-          <div className="bg-white rounded-2xl p-6 border border-navy-100 shadow-sm space-y-6">
-            {/* Lump / Swelling */}
+          <div className="flip7-card flip7-card-gold p-6 sm:p-8 space-y-6">
             <div className="space-y-2">
-              <label className="block text-sm font-bold text-navy">
+              <label className="block text-sm font-extrabold text-[#14283F]">
                 {t.assessment.lumpLabel}
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {(["no", "yes", "unknown", "prefer_not"] as Answer[]).map((val) => (
-                  <button
-                    key={val}
-                    type="button"
-                    onClick={() => handleAnswerChange("newLumpOrSwelling", val)}
-                    className={`py-2 px-3 text-xs font-semibold rounded-lg border capitalize transition ${
-                      answers.newLumpOrSwelling === val
-                        ? "bg-teal text-white border-teal"
-                        : "bg-navy-50 text-slate-text border-navy-100 hover:bg-navy-100"
-                    }`}
-                  >
-                    {val === "prefer_not" ? t.common.preferNot : val === "unknown" ? t.common.unknown : val === "yes" ? t.common.yes : t.common.no}
-                  </button>
-                ))}
-              </div>
+              {renderPillChoices("newLumpOrSwelling")}
             </div>
 
-            {/* Surgery */}
-            <div className="space-y-2 pt-4 border-t border-navy-50">
-              <label className="block text-sm font-bold text-navy">
+            <div className="space-y-2 pt-4 border-t border-[#E8F6F5]">
+              <label className="block text-sm font-extrabold text-[#14283F]">
                 {t.assessment.surgeryLabel}
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {(["no", "yes", "unknown", "prefer_not"] as Answer[]).map((val) => (
-                  <button
-                    key={val}
-                    type="button"
-                    onClick={() => handleAnswerChange("priorTesticularSurgeryOrInjury", val)}
-                    className={`py-2 px-3 text-xs font-semibold rounded-lg border capitalize transition ${
-                      answers.priorTesticularSurgeryOrInjury === val
-                        ? "bg-teal text-white border-teal"
-                        : "bg-navy-50 text-slate-text border-navy-100 hover:bg-navy-100"
-                    }`}
-                  >
-                    {val === "prefer_not" ? t.common.preferNot : val === "unknown" ? t.common.unknown : val === "yes" ? t.common.yes : t.common.no}
-                  </button>
-                ))}
-              </div>
+              {renderPillChoices("priorTesticularSurgeryOrInjury")}
             </div>
 
-            {/* Tobacco */}
-            <div className="space-y-2 pt-4 border-t border-navy-50">
-              <label className="block text-sm font-bold text-navy">
+            <div className="space-y-2 pt-4 border-t border-[#E8F6F5]">
+              <label className="block text-sm font-extrabold text-[#14283F]">
                 {t.assessment.tobaccoLabel}
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {(["no", "yes", "unknown", "prefer_not"] as Answer[]).map((val) => (
-                  <button
-                    key={val}
-                    type="button"
-                    onClick={() => handleAnswerChange("tobaccoUse", val)}
-                    className={`py-2 px-3 text-xs font-semibold rounded-lg border capitalize transition ${
-                      answers.tobaccoUse === val
-                        ? "bg-teal text-white border-teal"
-                        : "bg-navy-50 text-slate-text border-navy-100 hover:bg-navy-100"
-                    }`}
-                  >
-                    {val === "prefer_not" ? t.common.preferNot : val === "unknown" ? t.common.unknown : val === "yes" ? t.common.yes : t.common.no}
-                  </button>
-                ))}
-              </div>
+              {renderPillChoices("tobaccoUse")}
             </div>
 
-            {/* Occupational Heat */}
-            <div className="space-y-2 pt-4 border-t border-navy-50">
-              <label className="block text-sm font-bold text-navy">
+            <div className="space-y-2 pt-4 border-t border-[#E8F6F5]">
+              <label className="block text-sm font-extrabold text-[#14283F]">
                 {t.assessment.heatLabel}
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {(["no", "yes", "unknown", "prefer_not"] as Answer[]).map((val) => (
-                  <button
-                    key={val}
-                    type="button"
-                    onClick={() => handleAnswerChange("occupationalHeatExposure", val)}
-                    className={`py-2 px-3 text-xs font-semibold rounded-lg border capitalize transition ${
-                      answers.occupationalHeatExposure === val
-                        ? "bg-teal text-white border-teal"
-                        : "bg-navy-50 text-slate-text border-navy-100 hover:bg-navy-100"
-                    }`}
-                  >
-                    {val === "prefer_not" ? t.common.preferNot : val === "unknown" ? t.common.unknown : val === "yes" ? t.common.yes : t.common.no}
-                  </button>
-                ))}
-              </div>
+              {renderPillChoices("occupationalHeatExposure")}
             </div>
           </div>
         )}
 
-        {/* STEP 4: SYNTHETIC LAB REPORT (EVIDENCELENS) */}
+        {/* STEP 4: SYNTHETIC LAB REPORT */}
         {step === 4 && assessmentId && (
-          <div className="bg-white rounded-2xl p-6 border border-navy-100 shadow-sm space-y-4">
+          <div className="flip7-card flip7-card-sky p-6 sm:p-8 space-y-4">
             <div>
-              <h3 className="font-bold text-navy text-lg">
+              <h3 className="font-extrabold text-[#14283F] text-xl">
                 {t.assessment.card4Title}
               </h3>
               <p className="text-xs text-slate-text">
@@ -472,20 +405,20 @@ function AssessmentContent() {
         )}
 
         {errorMsg && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs font-medium text-red-700">
+          <div className="p-4 bg-[#FFF3F0] border-2 border-[#FF8A6A] rounded-2xl text-xs font-bold text-[#EF6C4A]">
             {errorMsg}
           </div>
         )}
 
-        {/* Navigation Controls */}
+        {/* Navigation Buttons - Flip7 Pill Style */}
         <div className="flex items-center justify-between pt-4">
           {step > 1 ? (
             <button
               type="button"
               onClick={handlePrevStep}
-              className="px-5 py-2.5 bg-white border border-navy-200 text-navy text-xs font-bold rounded-xl hover:bg-navy-50 transition flex items-center gap-1.5"
+              className="btn-pill bg-white border-2 border-[#1E8C86]/40 text-[#14283F] hover:bg-[#E8F6F5] text-xs"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
+              <ArrowLeft className="w-4 h-4 stroke-[2.5]" />
               <span>{t.common.back}</span>
             </button>
           ) : (
@@ -496,17 +429,17 @@ function AssessmentContent() {
             <button
               type="button"
               onClick={handleNextStep}
-              className="px-6 py-2.5 bg-teal text-white text-xs font-bold rounded-xl hover:bg-teal-700 transition flex items-center gap-1.5 shadow-sm"
+              className="btn-pill btn-teal-primary text-xs"
             >
               <span>{t.common.continue}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-4 h-4 stroke-[2.5]" />
             </button>
           ) : (
             <button
               type="button"
               onClick={handleEvaluate}
               disabled={isSubmitting}
-              className="px-8 py-3 bg-navy text-white text-xs font-bold rounded-xl hover:bg-navy-900 transition flex items-center gap-2 shadow-md"
+              className="btn-pill btn-gold-cta text-xs font-extrabold"
             >
               {isSubmitting && <RefreshCw className="w-4 h-4 animate-spin" />}
               <span>Generate Care Pathway & Signals</span>

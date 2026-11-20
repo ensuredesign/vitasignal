@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { SYNTHETIC_REPORTS, SyntheticReportFixture } from "@/lib/fixtures/reports";
 import { useLocale } from "@/lib/i18n/context";
-import { FileText, Cpu, CheckCircle2, AlertTriangle, ShieldCheck, RefreshCw } from "lucide-react";
+import { FileText, Cpu, CheckCircle2, ShieldCheck, RefreshCw, Sparkles } from "lucide-react";
 
 interface ReportStepProps {
   assessmentId: string;
@@ -43,7 +43,6 @@ export function ReportStep({ assessmentId, revision, onConfirmed }: ReportStepPr
       }
 
       setExtractionResult(data);
-      // Default: check all observations where lab flag is abnormal or user wants to verify
       const initialChecked = (data.observations || [])
         .map((o: any) => o.id)
         .filter(Boolean);
@@ -91,9 +90,9 @@ export function ReportStep({ assessmentId, revision, onConfirmed }: ReportStepPr
 
   return (
     <div className="space-y-6">
-      {/* Fixture Selector */}
-      <div className="bg-white border border-navy-100 rounded-xl p-5 shadow-sm">
-        <label className="block text-sm font-bold text-navy mb-2">
+      {/* Fixture Selection Buttons */}
+      <div className="bg-[#FFF8E7] border border-[#F4ECD4] rounded-2xl p-5 shadow-xs">
+        <label className="block text-xs font-extrabold text-[#14283F] uppercase tracking-wider mb-3">
           {t.assessment.selectFixtureLabel}
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -106,14 +105,14 @@ export function ReportStep({ assessmentId, revision, onConfirmed }: ReportStepPr
                 setExtractionResult(null);
                 setStatusMessage(null);
               }}
-              className={`p-3 text-left rounded-lg border text-xs transition ${
+              className={`p-3 text-left rounded-2xl border-2 text-xs transition-all active:scale-95 ${
                 selectedFixtureId === rep.id
-                  ? "border-teal bg-teal-50 text-navy font-semibold ring-1 ring-teal"
-                  : "border-navy-100 bg-navy-50 text-slate-text hover:bg-navy-100"
+                  ? "border-[#2BA8A2] bg-white text-[#14283F] font-bold shadow-teal-glow"
+                  : "border-[#E8F6F5] bg-white/70 text-slate-text hover:bg-white"
               }`}
             >
-              <div className="font-bold text-navy flex items-center gap-1.5 mb-1">
-                <FileText className="w-3.5 h-3.5 text-teal" />
+              <div className="font-extrabold text-[#14283F] flex items-center gap-1.5 mb-1">
+                <FileText className="w-3.5 h-3.5 text-[#2BA8A2]" />
                 {rep.id}
               </div>
               <div className="text-[11px] leading-tight text-slate-text line-clamp-2">
@@ -124,23 +123,23 @@ export function ReportStep({ assessmentId, revision, onConfirmed }: ReportStepPr
         </div>
       </div>
 
-      {/* Raw Synthetic Text Display */}
+      {/* Raw Synthetic Text Display in Crisp Box */}
       {fixture && (
-        <div className="bg-navy-900 text-teal-100 font-mono text-xs rounded-xl p-4 relative overflow-x-auto border border-navy-700">
-          <div className="absolute top-2 right-2 text-[10px] bg-red-950/80 text-red-200 border border-red-800 px-2 py-0.5 rounded font-sans uppercase font-bold tracking-wider">
+        <div className="bg-white rounded-2xl p-4 border-2 border-[#1E8C86]/30 shadow-card text-[#14283F] font-mono text-xs relative overflow-x-auto">
+          <div className="absolute top-3 right-3 text-[10px] bg-[#FFF3F0] text-[#EF6C4A] border border-[#FF8A6A] px-2 py-0.5 rounded-full font-sans uppercase font-extrabold tracking-wider">
             {fixture.marker}
           </div>
           <pre className="whitespace-pre-wrap">{fixture.sourceText}</pre>
         </div>
       )}
 
-      {/* Extraction Buttons */}
+      {/* Extraction Action Buttons */}
       <div className="flex flex-wrap items-center gap-3">
         <button
           type="button"
           onClick={() => handleExtract("live_ai")}
           disabled={isExtracting}
-          className="flex items-center gap-2 px-4 py-2 bg-teal text-white text-sm font-semibold rounded-lg hover:bg-teal-700 disabled:opacity-50 transition shadow-sm"
+          className="btn-pill btn-gold-cta text-xs"
         >
           {isExtracting ? (
             <RefreshCw className="w-4 h-4 animate-spin" />
@@ -154,53 +153,53 @@ export function ReportStep({ assessmentId, revision, onConfirmed }: ReportStepPr
           type="button"
           onClick={() => handleExtract("fixture_replay")}
           disabled={isExtracting}
-          className="flex items-center gap-2 px-4 py-2 bg-navy-50 text-navy text-sm font-semibold rounded-lg border border-navy-100 hover:bg-navy-100 transition"
+          className="btn-pill bg-white text-[#14283F] border-2 border-[#2BA8A2] hover:bg-[#E8F6F5] text-xs shadow-xs"
         >
-          <ShieldCheck className="w-4 h-4 text-teal" />
+          <ShieldCheck className="w-4 h-4 text-[#2BA8A2]" />
           <span>{t.assessment.replayBtn}</span>
         </button>
       </div>
 
-      {/* Extraction Status & Mode Pill */}
+      {/* Extraction Results with Flip7 Pill Badges */}
       {extractionResult && (
-        <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-teal-100 pb-3">
+        <div className="bg-[#EFF8F7] border-2 border-[#2BA8A2]/40 rounded-3xl p-5 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#C7F1F3] pb-3">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-teal" />
-              <span className="text-xs font-bold text-navy">
+              <CheckCircle2 className="w-4 h-4 text-[#2BA8A2]" />
+              <span className="text-xs font-extrabold text-[#14283F]">
                 {t.assessment.modeNotice}
               </span>
-              <span className="px-2 py-0.5 text-xs font-mono font-bold rounded bg-teal text-white">
+              <span className="px-2.5 py-0.5 text-xs font-mono font-extrabold rounded-full bg-[#2BA8A2] text-white">
                 {extractionResult.mode}
               </span>
               <span className="text-xs text-slate-text">
                 ({extractionResult.model} • {extractionResult.latencyMs}ms)
               </span>
             </div>
-            <span className="text-xs font-semibold text-teal-800">
-              {extractionResult.observations?.length || 0} observations extracted & verified
+            <span className="text-xs font-bold text-[#1E8C86]">
+              {extractionResult.observations?.length || 0} observations grounded
             </span>
           </div>
 
           {/* Observations Table */}
-          <div>
-            <h5 className="text-xs font-bold text-navy uppercase tracking-wider mb-2">
+          <div className="space-y-2">
+            <h5 className="text-xs font-extrabold text-[#14283F] uppercase tracking-wider">
               {t.assessment.confirmCandidatesTitle}
             </h5>
-            <p className="text-xs text-slate-text mb-3">
+            <p className="text-xs text-slate-text">
               {t.assessment.confirmCandidatesHelp}
             </p>
 
-            <div className="space-y-2">
+            <div className="space-y-2 pt-1">
               {extractionResult.observations?.map((obs: any, idx: number) => {
                 const isChecked = confirmedCandidateIds.includes(obs.id);
                 return (
                   <div
                     key={obs.id || idx}
-                    className={`flex items-start gap-3 p-3 rounded-lg border transition ${
+                    className={`flex items-start gap-3 p-3.5 rounded-2xl border-2 transition-all ${
                       isChecked
-                        ? "bg-white border-teal shadow-xs"
-                        : "bg-navy-50/60 border-navy-100 opacity-60"
+                        ? "bg-white border-[#2BA8A2] shadow-teal-glow"
+                        : "bg-white/60 border-[#E8F6F5] opacity-60"
                     }`}
                   >
                     <input
@@ -208,28 +207,28 @@ export function ReportStep({ assessmentId, revision, onConfirmed }: ReportStepPr
                       id={`cand_${obs.id}`}
                       checked={isChecked}
                       onChange={() => toggleCandidate(obs.id)}
-                      className="mt-1 h-4 w-4 rounded text-teal focus:ring-teal"
+                      className="mt-1 h-4 w-4 rounded text-[#2BA8A2] focus:ring-[#2BA8A2]"
                     />
                     <label htmlFor={`cand_${obs.id}`} className="flex-1 text-xs cursor-pointer">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-navy capitalize">
+                        <span className="font-extrabold text-[#14283F] capitalize">
                           {obs.field.replace("_", " ")}:
                         </span>
-                        <span className="font-mono font-semibold text-teal-800">
+                        <span className="font-mono font-bold text-[#1E8C86]">
                           {obs.rawValue} {obs.unit || ""}
                         </span>
                         <span
-                          className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
                             obs.reportedFlag === "abnormal"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-teal-100 text-teal-800"
+                              ? "bg-[#FFF3F0] text-[#EF6C4A] border border-[#FF8A6A]"
+                              : "bg-[#E8F6F5] text-[#1E8C86] border border-[#C7F1F3]"
                           }`}
                         >
                           {obs.reportedFlag}
                         </span>
                       </div>
-                      <div className="text-[11px] text-slate-text mt-1 italic font-sans">
-                        Evidence Quote: "{obs.evidenceQuote}"
+                      <div className="text-[11px] text-slate-text mt-1 italic">
+                        "{obs.evidenceQuote}"
                       </div>
                     </label>
                   </div>
@@ -237,15 +236,15 @@ export function ReportStep({ assessmentId, revision, onConfirmed }: ReportStepPr
               })}
             </div>
 
-            <div className="mt-4">
+            <div className="pt-2">
               <button
                 type="button"
                 onClick={handleConfirmObservations}
                 disabled={isConfirming}
-                className="w-full sm:w-auto px-6 py-2 bg-navy text-white text-xs font-bold rounded-lg hover:bg-navy-900 transition flex items-center justify-center gap-2"
+                className="btn-pill btn-teal-primary text-xs font-extrabold"
               >
                 {isConfirming && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
-                <span>Confirm Selected Findings into Assessment</span>
+                <span>Confirm Findings into Clinical Intake</span>
               </button>
             </div>
           </div>
@@ -253,7 +252,7 @@ export function ReportStep({ assessmentId, revision, onConfirmed }: ReportStepPr
       )}
 
       {statusMessage && (
-        <div className="p-3 bg-navy-50 border border-navy-200 rounded-lg text-xs font-medium text-navy">
+        <div className="p-3 bg-[#FFF8E7] border border-[#F4ECD4] rounded-2xl text-xs font-bold text-[#14283F]">
           {statusMessage}
         </div>
       )}

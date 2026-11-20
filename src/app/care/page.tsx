@@ -7,15 +7,13 @@ import { Footer } from "@/components/layout/Footer";
 import { LocaleProvider, useLocale } from "@/lib/i18n/context";
 import {
   Lock,
-  ShieldCheck,
   CheckCircle2,
   Share2,
   Trash2,
   Download,
-  AlertTriangle,
-  RefreshCw,
   Clock,
   ArrowRight,
+  ShieldCheck,
 } from "lucide-react";
 
 function CareShareContent() {
@@ -37,7 +35,6 @@ function CareShareContent() {
           setAssessment(data.assessment);
         }
 
-        // Check if an active share already exists
         const shareRes = await fetch("/api/share/current");
         if (shareRes.ok) {
           const shareData = await shareRes.json();
@@ -124,15 +121,15 @@ function CareShareContent() {
     : [];
 
   return (
-    <div className="min-h-screen flex flex-col bg-offwhite">
+    <div className="min-h-screen flex flex-col bg-surface-base">
       <Navbar />
 
       <main className="flex-1 py-10 max-w-4xl mx-auto px-4 sm:px-6 space-y-8">
         <div>
-          <span className="text-xs font-bold text-teal uppercase tracking-wider">
-            PrivacyVault & Access Control
+          <span className="text-xs font-extrabold text-[#2BA8A2] uppercase tracking-wider">
+            PrivacyVault & Granular Sharing
           </span>
-          <h1 className="text-3xl font-extrabold text-navy mt-1">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-[#14283F] mt-1">
             {t.privacy.title}
           </h1>
           <p className="text-sm text-slate-text mt-2 leading-relaxed">
@@ -142,32 +139,32 @@ function CareShareContent() {
 
         {/* ACTIVE SHARE STATUS CARD */}
         {activeShare ? (
-          <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 space-y-4 shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-teal-100 pb-3">
+          <div className="flip7-card flip7-card-sky p-6 sm:p-8 space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E8F6F5] pb-3">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-teal" />
-                <h3 className="font-bold text-navy text-base">Active Share Snapshot</h3>
-                <span className="px-2 py-0.5 rounded text-xs font-mono font-bold bg-teal text-white">
+                <CheckCircle2 className="w-5 h-5 text-[#2BA8A2]" />
+                <h3 className="font-extrabold text-[#14283F] text-lg">Active Share Snapshot</h3>
+                <span className="px-3 py-0.5 rounded-full text-xs font-mono font-extrabold bg-[#2BA8A2] text-white">
                   {activeShare.status}
                 </span>
               </div>
 
               <div className="flex items-center gap-2 text-xs text-slate-text">
-                <Clock className="w-4 h-4 text-teal" />
+                <Clock className="w-4 h-4 text-[#2BA8A2]" />
                 <span>Expires: {new Date(activeShare.expiresAt).toLocaleTimeString()}</span>
               </div>
             </div>
 
             <div className="text-xs text-slate-text">
-              Share ID: <code className="font-mono text-navy font-bold">{activeShare.id}</code>
+              Share ID: <code className="font-mono text-[#14283F] font-bold">{activeShare.id}</code>
             </div>
 
-            {/* Snapshot Preview */}
-            <div className="bg-white rounded-xl p-4 border border-teal-100 space-y-2">
-              <h4 className="font-bold text-navy text-xs uppercase tracking-wider">
+            {/* Snapshot Preview in Flip7 Cream Surface */}
+            <div className="bg-[#FFF8E7] rounded-2xl p-5 border border-[#F4ECD4] space-y-2">
+              <h4 className="font-extrabold text-[#14283F] text-xs uppercase tracking-wider">
                 {t.privacy.snapshotSummary} (Shared Fields Only)
               </h4>
-              <div className="bg-navy-50/70 p-3 rounded-lg font-mono text-xs text-navy overflow-x-auto">
+              <div className="bg-white p-3.5 rounded-xl font-mono text-xs text-[#14283F] border border-[#F4ECD4] overflow-x-auto">
                 <pre>{JSON.stringify(activeShare.snapshot?.selectedAnswers || {}, null, 2)}</pre>
               </div>
             </div>
@@ -176,18 +173,18 @@ function CareShareContent() {
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <Link
                 href="/review"
-                className="px-4 py-2 bg-navy text-white text-xs font-bold rounded-lg hover:bg-navy-900 transition flex items-center gap-1.5"
+                className="btn-pill btn-teal-primary text-xs"
               >
                 <span>View in Care Coordinator Panel</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-4 h-4 stroke-[2.5]" />
               </Link>
 
               <button
                 type="button"
                 onClick={handlePrint}
-                className="px-4 py-2 bg-white border border-navy-200 text-navy text-xs font-semibold rounded-lg hover:bg-navy-50 transition flex items-center gap-1.5"
+                className="btn-pill bg-white text-[#14283F] border-2 border-[#1E8C86]/30 hover:bg-[#E8F6F5] text-xs"
               >
-                <Download className="w-3.5 h-3.5" />
+                <Download className="w-4 h-4" />
                 <span>{t.common.download}</span>
               </button>
 
@@ -195,18 +192,18 @@ function CareShareContent() {
                 type="button"
                 onClick={handleRevokeShare}
                 disabled={isRevoking}
-                className="px-4 py-2 bg-urgent-bg border border-urgent-border text-urgent text-xs font-bold rounded-lg hover:bg-red-100 transition flex items-center gap-1.5 ml-auto"
+                className="btn-pill btn-coral-urgent text-xs ml-auto"
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <Trash2 className="w-4 h-4" />
                 <span>{isRevoking ? "Revoking..." : t.privacy.revokeBtn}</span>
               </button>
             </div>
           </div>
         ) : (
-          /* FIELD SELECTION FORM */
-          <div className="bg-white rounded-2xl p-6 border border-navy-100 shadow-sm space-y-6">
+          /* FIELD SELECTION FORM IN FLIP7 CARD */
+          <div className="flip7-card flip7-card-gold p-6 sm:p-8 space-y-6">
             <div>
-              <h3 className="font-bold text-navy text-base">
+              <h3 className="font-extrabold text-[#14283F] text-xl">
                 {t.privacy.shareSectionTitle}
               </h3>
               <p className="text-xs text-slate-text mt-1">
@@ -215,23 +212,23 @@ function CareShareContent() {
             </div>
 
             {selectableFields.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {selectableFields.map((fieldKey) => {
                   const isChecked = selectedKeys.includes(fieldKey);
                   return (
                     <label
                       key={fieldKey}
-                      className={`flex items-center gap-3 p-3 rounded-xl border text-xs cursor-pointer transition ${
+                      className={`flex items-center gap-3 p-3.5 rounded-2xl border-2 text-xs font-bold cursor-pointer transition-all ${
                         isChecked
-                          ? "bg-teal-50 border-teal text-navy font-semibold ring-1 ring-teal"
-                          : "bg-navy-50/50 border-navy-100 text-slate-text hover:bg-navy-50"
+                          ? "bg-[#FFF8E7] border-[#FFD23F] text-[#14283F] shadow-accent-glow"
+                          : "bg-white border-[#E8F6F5] text-slate-text hover:border-[#2BA8A2]"
                       }`}
                     >
                       <input
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => toggleField(fieldKey)}
-                        className="h-4 w-4 rounded text-teal focus:ring-teal"
+                        className="h-4 w-4 rounded text-[#2BA8A2] focus:ring-[#2BA8A2]"
                       />
                       <span className="capitalize">{fieldKey.replace(/([A-Z])/g, " $1")}</span>
                     </label>
@@ -239,22 +236,22 @@ function CareShareContent() {
                 })}
               </div>
             ) : (
-              <div className="text-xs text-slate-text italic p-4 bg-navy-50 rounded-lg">
+              <div className="text-xs text-slate-text italic p-4 bg-[#FFF8E7] rounded-2xl border border-[#F4ECD4]">
                 No positive risk signals reported in this intake.
               </div>
             )}
 
-            {/* Explicit Consent Checkbox */}
-            <div className="bg-navy-50/80 border border-navy-100 rounded-xl p-4 text-xs space-y-2">
-              <label className="flex items-start gap-2.5 cursor-pointer">
+            {/* Explicit Consent Checkbox in Cream Box */}
+            <div className="bg-[#FFF8E7] border border-[#F4ECD4] rounded-2xl p-4 text-xs space-y-2">
+              <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={consentChecked}
                   onChange={(e) => setConsentChecked(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded text-teal focus:ring-teal"
+                  className="mt-0.5 h-4 w-4 rounded text-[#2BA8A2] focus:ring-[#2BA8A2]"
                 />
-                <span className="font-semibold text-navy">
-                  I authorize generating an immutable snapshot of the selected fields for simulated care coordinator handoff. (Expires automatically in 24 hours).
+                <span className="font-bold text-[#14283F]">
+                  I authorize creating an immutable snapshot containing ONLY the checked fields above. The snapshot expires automatically in 24 hours and can be revoked at any time.
                 </span>
               </label>
             </div>
@@ -263,17 +260,16 @@ function CareShareContent() {
               type="button"
               onClick={handleCreateShare}
               disabled={selectedKeys.length === 0 || !consentChecked || isSharing}
-              className="px-6 py-2.5 bg-teal text-white text-xs font-bold rounded-lg hover:bg-teal-700 disabled:opacity-50 transition flex items-center gap-2 shadow-sm"
+              className="btn-pill btn-gold-cta text-xs font-extrabold disabled:opacity-50"
             >
-              {isSharing && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
-              <Share2 className="w-3.5 h-3.5" />
+              <Share2 className="w-4 h-4 stroke-[2.5]" />
               <span>Generate Immutable Share Snapshot</span>
             </button>
           </div>
         )}
 
         {msg && (
-          <div className="p-3 bg-navy-50 border border-navy-200 rounded-lg text-xs font-semibold text-navy">
+          <div className="p-4 bg-[#FFF8E7] border border-[#F4ECD4] rounded-2xl text-xs font-bold text-[#14283F]">
             {msg}
           </div>
         )}

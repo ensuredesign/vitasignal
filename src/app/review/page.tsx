@@ -8,13 +8,9 @@ import { LocaleProvider, useLocale } from "@/lib/i18n/context";
 import {
   Users,
   CheckCircle2,
-  Calendar,
-  Clock,
   ShieldAlert,
   ArrowRight,
-  FileCheck,
   RefreshCw,
-  Lock,
 } from "lucide-react";
 
 function CoordinatorReviewContent() {
@@ -23,7 +19,6 @@ function CoordinatorReviewContent() {
   const [events, setEvents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const fetchActiveShare = async () => {
     try {
@@ -35,8 +30,8 @@ function CoordinatorReviewContent() {
       } else {
         setShareData(null);
       }
-    } catch (err: any) {
-      setErrorMsg(err.message);
+    } catch {
+      // Ignore
     } finally {
       setIsLoading(false);
     }
@@ -76,10 +71,10 @@ function CoordinatorReviewContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-offwhite">
+      <div className="min-h-screen flex flex-col bg-surface-base">
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
-          <RefreshCw className="w-8 h-8 text-teal animate-spin" />
+          <RefreshCw className="w-8 h-8 text-[#2BA8A2] animate-spin" />
         </div>
         <Footer />
       </div>
@@ -89,15 +84,15 @@ function CoordinatorReviewContent() {
   const latestEvent = events.length > 0 ? events[events.length - 1].eventType : "none";
 
   return (
-    <div className="min-h-screen flex flex-col bg-offwhite">
+    <div className="min-h-screen flex flex-col bg-surface-base">
       <Navbar />
 
       <main className="flex-1 py-10 max-w-4xl mx-auto px-4 sm:px-6 space-y-8">
         <div>
-          <span className="text-xs font-bold text-teal uppercase tracking-wider">
+          <span className="text-xs font-extrabold text-[#2BA8A2] uppercase tracking-wider">
             CareLoop Simulated Coordinator
           </span>
-          <h1 className="text-3xl font-extrabold text-navy mt-1">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-[#14283F] mt-1">
             {t.coordinator.title}
           </h1>
           <p className="text-sm text-slate-text mt-2 leading-relaxed">
@@ -105,34 +100,31 @@ function CoordinatorReviewContent() {
           </p>
         </div>
 
-        {/* SIMULATION DISCLAIMER BANNER */}
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-900 flex items-start gap-2.5">
-          <ShieldAlert className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <strong>Strict Prototype Simulation:</strong> {t.coordinator.simulationNotice}. Raw intake answers are never disclosed here—only the user-selected snapshot fields.
+        {/* SIMULATION DISCLAIMER BANNER IN CREAM */}
+        <div className="bg-[#FFF8E7] border-2 border-[#F4ECD4] rounded-2xl p-4 text-xs text-[#14283F] flex items-start gap-3">
+          <ShieldAlert className="w-4 h-4 text-[#E6B800] flex-shrink-0 mt-0.5" />
+          <div className="leading-relaxed">
+            <strong>Strict Prototype Simulation:</strong> {t.coordinator.simulationNotice}. The coordinator has access ONLY to the user-approved snapshot projection, preserving medical privacy.
           </div>
         </div>
 
         {!shareData ? (
-          <div className="bg-white rounded-2xl p-8 border border-navy-100 shadow-sm text-center space-y-4">
-            <Users className="w-10 h-10 text-slate-text mx-auto opacity-50" />
-            <h3 className="font-bold text-navy text-lg">{t.coordinator.noActiveShare}</h3>
+          <div className="flip7-card p-8 text-center space-y-4">
+            <Users className="w-12 h-12 text-[#2BA8A2] mx-auto opacity-40" />
+            <h3 className="font-extrabold text-[#14283F] text-xl">{t.coordinator.noActiveShare}</h3>
             <p className="text-xs text-slate-text max-w-md mx-auto">
               To experience the simulated handoff workflow, return to the assessment result and select fields to share.
             </p>
-            <Link
-              href="/assessment/result"
-              className="px-6 py-2.5 bg-teal text-white text-xs font-bold rounded-lg inline-block"
-            >
+            <Link href="/assessment/result" className="btn-pill btn-teal-primary text-xs inline-flex">
               Go to Care Pathway
             </Link>
           </div>
         ) : (
           <div className="space-y-6">
             {/* Snapshot Details Card */}
-            <div className="bg-white rounded-2xl p-6 border border-navy-100 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-navy-50 pb-3">
-                <span className="text-xs font-bold text-teal uppercase tracking-wider">
+            <div className="flip7-card p-6 sm:p-8 space-y-4">
+              <div className="flex items-center justify-between border-b border-[#E8F6F5] pb-3">
+                <span className="text-xs font-extrabold text-[#2BA8A2] uppercase tracking-wider">
                   Received Snapshot Projection
                 </span>
                 <span className="text-xs font-mono text-slate-text">
@@ -141,18 +133,18 @@ function CoordinatorReviewContent() {
               </div>
 
               <div>
-                <h4 className="text-xs font-bold text-navy uppercase tracking-wider mb-2">
-                  Shared Findings
+                <h4 className="text-xs font-extrabold text-[#14283F] uppercase tracking-wider mb-2">
+                  Patient Shared Findings
                 </h4>
-                <div className="bg-navy-50 p-4 rounded-xl font-mono text-xs text-navy">
+                <div className="bg-[#FFF8E7] p-4 rounded-2xl font-mono text-xs text-[#14283F] border border-[#F4ECD4]">
                   <pre>{JSON.stringify(shareData.snapshot?.selectedAnswers || {}, null, 2)}</pre>
                 </div>
               </div>
             </div>
 
             {/* State Machine Timeline Card */}
-            <div className="bg-white rounded-2xl p-6 border border-navy-100 shadow-sm space-y-6">
-              <h3 className="font-bold text-navy text-base">
+            <div className="flip7-card flip7-card-gold p-6 sm:p-8 space-y-6">
+              <h3 className="font-extrabold text-[#14283F] text-xl">
                 {t.coordinator.timelineTitle}
               </h3>
 
@@ -169,12 +161,12 @@ function CoordinatorReviewContent() {
                   return (
                     <div
                       key={st.id}
-                      className={`p-3 rounded-xl border text-center text-xs font-bold transition ${
+                      className={`btn-pill text-xs py-2 px-3 justify-center border transition-all ${
                         isCurrent
-                          ? "bg-teal text-white border-teal shadow-xs"
+                          ? "btn-gold-cta font-extrabold"
                           : hasReached
-                          ? "bg-navy-700 text-white border-navy-700"
-                          : "bg-navy-50 text-slate-text border-navy-100 opacity-60"
+                          ? "bg-[#2BA8A2] text-white border-[#2BA8A2]"
+                          : "bg-white text-slate-text border-[#E8F6F5] opacity-60"
                       }`}
                     >
                       {st.label}
@@ -183,14 +175,14 @@ function CoordinatorReviewContent() {
                 })}
               </div>
 
-              {/* Event Transition Buttons */}
-              <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-navy-50">
+              {/* Transition Buttons */}
+              <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-[#E8F6F5]">
                 {latestEvent === "shared" && (
                   <button
                     type="button"
                     onClick={() => handleAdvanceState("acknowledged")}
                     disabled={isUpdating}
-                    className="px-5 py-2.5 bg-teal text-white text-xs font-bold rounded-lg hover:bg-teal-700 transition flex items-center gap-2"
+                    className="btn-pill btn-teal-primary text-xs"
                   >
                     {isUpdating && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                     <span>{t.coordinator.actionAcknowledge}</span>
@@ -202,7 +194,7 @@ function CoordinatorReviewContent() {
                     type="button"
                     onClick={() => handleAdvanceState("simulated_scheduled")}
                     disabled={isUpdating}
-                    className="px-5 py-2.5 bg-navy text-white text-xs font-bold rounded-lg hover:bg-navy-900 transition flex items-center gap-2"
+                    className="btn-pill btn-gold-cta text-xs"
                   >
                     {isUpdating && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                     <span>{t.coordinator.actionSchedule}</span>
@@ -214,7 +206,7 @@ function CoordinatorReviewContent() {
                     type="button"
                     onClick={() => handleAdvanceState("simulated_completed")}
                     disabled={isUpdating}
-                    className="px-5 py-2.5 bg-teal text-white text-xs font-bold rounded-lg hover:bg-teal-700 transition flex items-center gap-2"
+                    className="btn-pill btn-teal-primary text-xs"
                   >
                     {isUpdating && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                     <span>{t.coordinator.actionComplete}</span>
@@ -222,7 +214,7 @@ function CoordinatorReviewContent() {
                 )}
 
                 {latestEvent === "simulated_completed" && (
-                  <div className="flex items-center gap-2 text-xs font-bold text-teal">
+                  <div className="flex items-center gap-2 text-xs font-extrabold text-[#2BA8A2] bg-[#E8F6F5] px-4 py-2 rounded-full border border-[#C7F1F3]">
                     <CheckCircle2 className="w-4 h-4" />
                     <span>Simulated Care Loop Successfully Completed</span>
                   </div>
