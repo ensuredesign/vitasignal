@@ -6,18 +6,12 @@ export async function GET() {
   try {
     const session = await getSessionContext();
     if (!session) {
-      return NextResponse.json(
-        { error: { code: "UNAUTHORIZED", message: "Active session required" } },
-        { status: 401 }
-      );
+      return NextResponse.json({ share: null, events: [] });
     }
 
     const activeShare = await DataStore.getActiveCareShare(session.assessmentId, session.ownerId);
     if (!activeShare) {
-      return NextResponse.json(
-        { error: { code: "NO_ACTIVE_SHARE", message: "No active unexpired share found" } },
-        { status: 404 }
-      );
+      return NextResponse.json({ share: null, events: [] });
     }
 
     const events = await DataStore.getCareEvents(activeShare.id, session.ownerId);

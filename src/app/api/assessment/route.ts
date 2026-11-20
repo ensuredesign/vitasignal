@@ -69,12 +69,12 @@ export async function GET() {
   try {
     const session = await getSessionContext();
     if (!session) {
-      return NextResponse.json({ error: { code: "UNAUTHORIZED" } }, { status: 401 });
+      return NextResponse.json({ assessment: null });
     }
 
     const record = await DataStore.getAssessment(session.assessmentId, session.ownerId);
     if (!record) {
-      return NextResponse.json({ error: { code: "NOT_FOUND" } }, { status: 404 });
+      return NextResponse.json({ assessment: null });
     }
 
     return NextResponse.json({ assessment: record });
