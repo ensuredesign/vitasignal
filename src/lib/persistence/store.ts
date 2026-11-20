@@ -200,7 +200,35 @@ export class DataStore {
 
   // 2. Fetch Assessment by Owner
   static async getAssessment(assessmentId: string, ownerId: string): Promise<AssessmentRecord | null> {
-    const record = memoryStore.assessments.get(assessmentId);
+    let record = memoryStore.assessments.get(assessmentId);
+    if (!record) {
+      const client = createAdminClient();
+      if (client) {
+        try {
+          const { data } = await client
+            .from("assessments")
+            .select("*")
+            .eq("id", assessmentId)
+            .eq("owner_id", ownerId)
+            .maybeSingle();
+          if (data) {
+            record = {
+              id: data.id,
+              sessionId: data.session_id,
+              ownerId: data.owner_id,
+              revision: data.revision,
+              answers: data.answers,
+              status: data.status,
+              createdAt: data.created_at,
+              updatedAt: data.updated_at,
+            };
+            memoryStore.assessments.set(data.id, record);
+          }
+        } catch (err) {
+          console.warn("Supabase getAssessment error:", err);
+        }
+      }
+    }
     if (!record) return null;
     if (record.ownerId !== ownerId) return null; // IDOR prevention
 
@@ -272,11 +300,14 @@ export class DataStore {
     expectedRevision: number;
     ownerId: string;
   }): Promise<AssessmentResult> {
-    const record = memoryStore.assessments.get(params.assessmentId);
+    const record = memoryStore.assessments.get(params.assessmentId) || (await this.getAssessment(params.assessmentId, params.ownerId)) || undefined;
     if (!record) throw new Error("Assessment not found");
     if (record.ownerId !== params.ownerId) throw new Error("Forbidden");
     if (record.revision !== params.expectedRevision) {
-      throw new Error("Conflict: Stale assessment revision");
+      // Tolerate 1-revision difference caused by async PATCH sync immediately before evaluate
+      if (Math.abs(record.revision - params.expectedRevision) > 1) {
+        throw new Error("Conflict: Stale assessment revision");
+      }
     }
 
     // Get any user-confirmed observations for this assessment
@@ -333,11 +364,44 @@ export class DataStore {
 
   // 5. Get Latest Screening Result
   static async getLatestScreeningResult(assessmentId: string, ownerId: string): Promise<AssessmentResult | null> {
-    const record = memoryStore.assessments.get(assessmentId);
+    const record = await this.getAssessment(assessmentId, ownerId);
     if (!record || record.ownerId !== ownerId) return null;
 
     const key = `${assessmentId}_${record.revision}`;
-    const result = memoryStore.screeningResults.get(key);
+    let result = memoryStore.screeningResults.get(key);
+    if (!result) {
+      const client = createAdminClient();
+      if (client) {
+        try {
+          const { data } = await client
+            .from("screening_results")
+            .select("*")
+            .eq("assessment_id", assessmentId)
+            .eq("owner_id", ownerId)
+            .order("revision", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (data) {
+            result = {
+              id: data.id || "res_" + Math.random().toString(36).substring(2, 10),
+              assessmentId,
+              ownerId,
+              pathway: data.pathway,
+              findings: data.findings || [],
+              missing: data.missing || [],
+              revision: data.revision,
+              ruleVersion: data.rule_version,
+              alternatives: [],
+              requiresClinicalReview: true,
+              generatedAt: data.created_at || new Date().toISOString(),
+            };
+            memoryStore.screeningResults.set(key, result);
+          }
+        } catch (err) {
+          console.warn("Supabase getLatestScreeningResult error:", err);
+        }
+      }
+    }
     return result || null;
   }
 
@@ -452,13 +516,25 @@ export class DataStore {
     selectedFieldKeys: string[];
     ownerId: string;
   }): Promise<CareShareRecord> {
-    const assessment = memoryStore.assessments.get(params.assessmentId);
+    const assessment = memoryStore.assessments.get(params.assessmentId) || (await this.getAssessment(params.assessmentId, params.ownerId)) || undefined;
     if (!assessment || assessment.ownerId !== params.ownerId) throw new Error("Assessment not found");
-    if (assessment.revision !== params.expectedRevision) throw new Error("Conflict: Assessment was modified");
+    if (assessment.revision !== params.expectedRevision) {
+      if (Math.abs(assessment.revision - params.expectedRevision) > 1) {
+        throw new Error("Conflict: Assessment was modified");
+      }
+    }
 
     // Check latest result safety: emergency or clarify_safety cannot be shared for routine care
-    const latestResult = await this.getLatestScreeningResult(params.assessmentId, params.ownerId);
-    if (!latestResult || latestResult.pathway === "urgent" || latestResult.pathway === "clarify_safety") {
+    let latestResult = await this.getLatestScreeningResult(params.assessmentId, params.ownerId);
+    if (!latestResult) {
+      latestResult = await this.evaluateAndStoreResult({
+        assessmentId: params.assessmentId,
+        expectedRevision: assessment.revision,
+        ownerId: params.ownerId,
+      });
+    }
+
+    if (!latestResult || latestResult.pathway === "urgent" || latestResult.pathway === "clarify_safety" || assessment.status === "urgent_halt") {
       throw new Error("Forbidden: Emergency or unresolved safety status cannot be shared as routine care referral");
     }
 
@@ -537,6 +613,41 @@ export class DataStore {
         return share;
       }
     }
+
+    const client = createAdminClient();
+    if (client) {
+      try {
+        const { data } = await client
+          .from("care_shares")
+          .select("*")
+          .eq("assessment_id", assessmentId)
+          .eq("owner_id", ownerId)
+          .eq("status", "active")
+          .gt("expires_at", new Date().toISOString())
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (data) {
+          const shareRecord: CareShareRecord = {
+            id: data.id,
+            assessmentId: data.assessment_id,
+            ownerId: data.owner_id,
+            revision: data.revision,
+            selectedFieldKeys: data.selected_field_keys,
+            snapshot: data.snapshot,
+            status: data.status,
+            expiresAt: data.expires_at,
+            createdAt: data.created_at,
+          };
+          memoryStore.careShares.set(shareRecord.id, shareRecord);
+          return shareRecord;
+        }
+      } catch (err) {
+        console.warn("Supabase getActiveCareShare warning:", err);
+      }
+    }
+
     return null;
   }
 

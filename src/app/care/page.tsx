@@ -14,6 +14,7 @@ import {
   Clock,
   ArrowRight,
   ShieldCheck,
+  AlertTriangle,
 } from "lucide-react";
 
 function CareShareContent() {
@@ -197,6 +198,70 @@ function CareShareContent() {
                 <Trash2 className="w-4 h-4" />
                 <span>{isRevoking ? "Revoking..." : t.privacy.revokeBtn}</span>
               </button>
+            </div>
+          </div>
+        ) : assessment?.status === "urgent_halt" ? (
+          /* EMERGENCY SAFETY OVERRIDE: ROUTINE SHARING STRICTLY PROHIBITED */
+          <div className="bg-[#FFF3F0] rounded-3xl p-6 sm:p-8 border-4 border-[#EF6C4A] shadow-coral-glow space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-[#EF6C4A] text-white flex items-center justify-center flex-shrink-0 animate-bounce">
+                <AlertTriangle className="w-6 h-6 stroke-[2.5]" />
+              </div>
+              <div>
+                <span className="text-xs uppercase font-extrabold tracking-wider text-[#EF6C4A]">
+                  Emergency Safety Protocol Active (SAFE-01)
+                </span>
+                <h3 className="font-extrabold text-[#14283F] text-xl">
+                  Routine Care Coordination Sharing Disabled
+                </h3>
+              </div>
+            </div>
+            <p className="text-xs sm:text-sm text-[#14283F] leading-relaxed">
+              This intake identified acute red-flag symptoms (severe sudden testicular pain / injury) requiring immediate emergency medical evaluation. Under international clinical safety guidelines, routine care coordinator referrals and delayed data sharing are strictly bypassed to eliminate any delay in emergency treatment.
+            </p>
+            <div className="pt-2 flex flex-wrap gap-3">
+              <Link
+                href="/assessment/result"
+                className="btn-pill btn-coral-urgent text-xs"
+              >
+                <span>View Emergency Care Instructions</span>
+                <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+              </Link>
+              <Link
+                href="/demo"
+                className="btn-pill bg-white text-[#14283F] border border-[#FF8A6A] text-xs hover:bg-[#FFF3F0]"
+              >
+                <span>Switch to Routine Scenario</span>
+              </Link>
+            </div>
+          </div>
+        ) : assessment?.status === "draft" ? (
+          /* DRAFT: INTAKE MUST BE EVALUATED FIRST */
+          <div className="flip7-card p-6 sm:p-8 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-[#FFF8E7] border border-[#F4ECD4] flex items-center justify-center text-[#E6B800]">
+                <Clock className="w-5 h-5 stroke-[2.5]" />
+              </div>
+              <div>
+                <span className="text-xs font-extrabold text-[#1E8C86] uppercase tracking-wider">
+                  Assessment Pending Evaluation
+                </span>
+                <h3 className="font-extrabold text-[#14283F] text-xl">
+                  Complete Intake Evaluation First
+                </h3>
+              </div>
+            </div>
+            <p className="text-xs text-slate-text leading-relaxed">
+              Before creating a selective care coordination snapshot, please complete your SignalSense questionnaire and compute your clinical pathway.
+            </p>
+            <div className="pt-2">
+              <Link
+                href="/assessment"
+                className="btn-pill btn-teal-primary text-xs"
+              >
+                <span>Go to SignalSense Intake</span>
+                <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+              </Link>
             </div>
           </div>
         ) : (

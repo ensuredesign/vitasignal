@@ -91,8 +91,8 @@ function AssessmentContent() {
     setAnswers((prev) => ({ ...prev, [field]: value }));
   };
 
-  const syncAssessment = async (newAnswers = answers) => {
-    if (!assessmentId) return;
+  const syncAssessment = async (newAnswers = answers): Promise<number> => {
+    if (!assessmentId) return revision;
     try {
       const res = await fetch("/api/assessment", {
         method: "PATCH",
@@ -104,12 +104,14 @@ function AssessmentContent() {
         }),
       });
       const data = await res.json();
-      if (res.ok) {
+      if (res.ok && typeof data.revision === "number") {
         setRevision(data.revision);
+        return data.revision;
       }
     } catch {
       // Background sync
     }
+    return revision;
   };
 
   const handleNextStep = async () => {
@@ -126,14 +128,14 @@ function AssessmentContent() {
     setIsSubmitting(true);
     setErrorMsg(null);
     try {
-      await syncAssessment();
+      const currentRev = await syncAssessment();
 
       const res = await fetch("/api/assessment/evaluate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           assessmentId,
-          expectedRevision: revision,
+          expectedRevision: currentRev,
         }),
       });
 
