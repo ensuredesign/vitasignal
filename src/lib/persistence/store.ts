@@ -119,8 +119,28 @@ export class DataStore {
     aiConsent: boolean;
   }): Promise<{ sessionId: string; assessmentId: string; expiresAt: string; revision: number }> {
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-    const sessionId = "sess_" + Math.random().toString(36).substring(2, 12);
-    const assessmentId = "asm_" + Math.random().toString(36).substring(2, 12);
+    let sessionId = "sess_" + Math.random().toString(36).substring(2, 12);
+    let assessmentId = "asm_" + Math.random().toString(36).substring(2, 12);
+
+    const client = createAdminClient();
+    if (client) {
+      try {
+        const { data, error } = await client.rpc("rpc_create_demo_session", {
+          p_owner_id: params.ownerId,
+          p_scenario_id: params.scenarioId,
+          p_locale: params.locale,
+          p_initial_answers: params.initialAnswers,
+          p_ai_consent: params.aiConsent,
+        });
+
+        if (!error && data) {
+          sessionId = data.sessionId;
+          assessmentId = data.assessmentId;
+        }
+      } catch (err) {
+        console.warn("Supabase RPC fallback to memory:", err);
+      }
+    }
 
     const sessionRecord: DemoSessionRecord = {
       id: sessionId,
@@ -219,6 +239,30 @@ export class DataStore {
       }
     }
 
+    const client = createAdminClient();
+    if (client) {
+      try {
+        await client
+          .from("assessments")
+          .update({
+            revision: record.revision,
+            answers: params.answers,
+            status: "draft",
+            updated_at: record.updatedAt,
+          })
+          .eq("id", params.assessmentId)
+          .eq("owner_id", params.ownerId);
+
+        await client
+          .from("care_shares")
+          .update({ status: "stale" })
+          .eq("assessment_id", params.assessmentId)
+          .eq("status", "active");
+      } catch (err) {
+        console.warn("Supabase updateAssessmentAnswers sync warning:", err);
+      }
+    }
+
     return { revision: record.revision };
   }
 
@@ -257,6 +301,32 @@ export class DataStore {
       assessmentId: params.assessmentId,
       ownerId: params.ownerId,
     });
+
+    const client = createAdminClient();
+    if (client) {
+      try {
+        await client
+          .from("assessments")
+          .update({
+            status: record.status,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", params.assessmentId)
+          .eq("owner_id", params.ownerId);
+
+        await client.from("screening_results").upsert({
+          assessment_id: params.assessmentId,
+          owner_id: params.ownerId,
+          revision: record.revision,
+          rule_version: CLINICAL_RULE_VERSION,
+          pathway: result.pathway,
+          findings: result.findings,
+          missing: result.missing,
+        });
+      } catch (err) {
+        console.warn("Supabase evaluateAndStoreResult sync warning:", err);
+      }
+    }
 
     return result;
   }
@@ -425,6 +495,24 @@ export class DataStore {
 
     memoryStore.careShares.set(shareId, shareRecord);
 
+    const client = createAdminClient();
+    if (client) {
+      try {
+        await client.from("care_shares").insert({
+          id: shareId,
+          assessment_id: params.assessmentId,
+          owner_id: params.ownerId,
+          revision: assessment.revision,
+          selected_field_keys: params.selectedFieldKeys,
+          snapshot: shareRecord.snapshot,
+          status: "active",
+          expires_at: expiresAt,
+        });
+      } catch (err) {
+        console.warn("Supabase createCareShare sync warning:", err);
+      }
+    }
+
     // Add initial 'shared' event
     await this.addCareEvent({
       shareId,
@@ -459,6 +547,22 @@ export class DataStore {
 
     share.status = "revoked";
     share.revokedAt = new Date().toISOString();
+
+    const client = createAdminClient();
+    if (client) {
+      try {
+        await client
+          .from("care_shares")
+          .update({
+            status: "revoked",
+            revoked_at: share.revokedAt,
+          })
+          .eq("id", shareId)
+          .eq("owner_id", ownerId);
+      } catch (err) {
+        console.warn("Supabase revokeCareShare sync warning:", err);
+      }
+    }
   }
 
   // 9. Care Coordinator Event State Machine
@@ -507,6 +611,23 @@ export class DataStore {
 
     events.push(eventRecord);
     memoryStore.careEvents.set(params.shareId, events);
+
+    const client = createAdminClient();
+    if (client) {
+      try {
+        await client.from("care_events").insert({
+          id: eventRecord.id,
+          owner_id: params.ownerId,
+          share_id: params.shareId,
+          event_type: params.eventType,
+          actor: eventRecord.actor,
+          idempotency_key: params.idempotencyKey,
+        });
+      } catch (err) {
+        console.warn("Supabase addCareEvent sync warning:", err);
+      }
+    }
+
     return eventRecord;
   }
 
@@ -520,6 +641,19 @@ export class DataStore {
   static async deleteDemoSession(sessionId: string, ownerId: string): Promise<void> {
     const session = memoryStore.sessions.get(sessionId);
     if (!session || session.ownerId !== ownerId) return;
+
+    const client = createAdminClient();
+    if (client) {
+      try {
+        await client
+          .from("demo_sessions")
+          .delete()
+          .eq("id", sessionId)
+          .eq("owner_id", ownerId);
+      } catch (err) {
+        console.warn("Supabase deleteDemoSession sync warning:", err);
+      }
+    }
 
     // Cascading deletion
     memoryStore.sessions.delete(sessionId);
