@@ -1,0 +1,115 @@
+{
+  "generatedAt": "2026-11-20T14:15:10.208Z",
+  "ruleVersion": "2026.11-v1",
+  "durationMs": 3,
+  "summary": {
+    "totalTests": 21,
+    "passedCases": 9,
+    "totalCases": 9,
+    "allPassed": true
+  },
+  "metrics": {
+    "ruleConcordance": "100%",
+    "urgentGateCoverage": "100%",
+    "evidenceGrounding": "100%",
+    "clinicalValidationStatus": "Not validated (Research prototype)",
+    "mode": "fixture_replay"
+  },
+  "cases": [
+    {
+      "scenarioId": "D01",
+      "name": "Preventive Awareness & Lifestyle Exposure",
+      "expectedPathway": "primary_care",
+      "actualPathway": "primary_care",
+      "passed": true,
+      "findingsCount": 2,
+      "missingCount": 0,
+      "ruleVersion": "2026.11-v1"
+    },
+    {
+      "scenarioId": "D02",
+      "name": "Prior Surgery & Lab Finding Verification",
+      "expectedPathway": "urology_andrology",
+      "actualPathway": "urology_andrology",
+      "passed": true,
+      "findingsCount": 1,
+      "missingCount": 0,
+      "ruleVersion": "2026.11-v1"
+    },
+    {
+      "scenarioId": "D03",
+      "name": "Difficulty Conceiving Pathway",
+      "expectedPathway": "fertility_services",
+      "actualPathway": "fertility_services",
+      "passed": true,
+      "findingsCount": 1,
+      "missingCount": 0,
+      "ruleVersion": "2026.11-v1"
+    },
+    {
+      "scenarioId": "D04",
+      "name": "Urgent Acute Symptoms (Emergency Gate)",
+      "expectedPathway": "urgent",
+      "actualPathway": "urgent",
+      "passed": true,
+      "findingsCount": 2,
+      "missingCount": 0,
+      "ruleVersion": "2026.11-v1"
+    },
+    {
+      "scenarioId": "D05",
+      "name": "Unresolved Acute Safety Status",
+      "expectedPathway": "clarify_safety",
+      "actualPathway": "clarify_safety",
+      "passed": true,
+      "findingsCount": 1,
+      "missingCount": 2,
+      "ruleVersion": "2026.11-v1"
+    },
+    {
+      "scenarioId": "D10",
+      "name": "All Negative Completed (Routine Education)",
+      "expectedPathway": "education",
+      "actualPathway": "education",
+      "passed": true,
+      "findingsCount": 1,
+      "missingCount": 0,
+      "ruleVersion": "2026.11-v1"
+    },
+    {
+      "scenarioId": "D11",
+      "name": "Incomplete History (Needs Clarification)",
+      "expectedPathway": "needs_clarification",
+      "actualPathway": "needs_clarification",
+      "passed": true,
+      "findingsCount": 1,
+      "missingCount": 2,
+      "ruleVersion": "2026.11-v1"
+    },
+    {
+      "scenarioId": "D14",
+      "name": "Age Invariance Check (Same facts, older age band)",
+      "expectedPathway": "primary_care",
+      "actualPathway": "primary_care",
+      "passed": true,
+      "findingsCount": 2,
+      "missingCount": 0,
+      "ruleVersion": "2026.11-v1"
+    },
+    {
+      "scenarioId": "D18",
+      "name": "New Testicular Lump or Swelling",
+      "expectedPathway": "urology_andrology",
+      "actualPathway": "urology_andrology",
+      "passed": true,
+      "findingsCount": 1,
+      "missingCount": 0,
+      "ruleVersion": "2026.11-v1"
+    }
+  ],
+  "reportsTested": [
+    "REP-01-OLIGO",
+    "REP-02-NORMO",
+    "REP-03-ADVERSARIAL"
+  ]
+}
